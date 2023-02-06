@@ -33,6 +33,7 @@ class GuzzleClientFactory
         $behatConfig = $config['behat'] ?? [];
         $url = $this->stripScheme($behatConfig['url'] ?? 'localhost');
         $ssl = (bool)$behatConfig['ssl'] ?? false;
+        $url = $this->prependScheme($url, $ssl);
 
         if (false === ($baseUri = $this->validateConnection($url, $ssl))) {
             throw new UnexpectedValueException('Provided URL is invalid or cannot be reached');
@@ -48,8 +49,6 @@ class GuzzleClientFactory
         if (! $uri->isValid()) {
             return false;
         }
-
-        $uri->setScheme($ssl ? 'https' : 'http');
 
         set_error_handler(function () {
             return true;
@@ -70,5 +69,10 @@ class GuzzleClientFactory
     public function stripScheme(string $url): string
     {
         return preg_replace('/^http(s):\/\//', '', $url);
+    }
+
+    public function prependScheme(string $url, bool $ssl): string
+    {
+        return ($ssl ? 'https' : 'http') . '://' . $url;
     }
 }
